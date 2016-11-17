@@ -10,13 +10,13 @@ var _ = {
         delete: 1,
         preview: 1,
         reply: 1,
-        vote: 1, // by default is disable vote system
+        vote: 0, // by default is disable vote system
         vote_img: 'https://i97.servimg.com/u/f97/19/54/65/02/th/68691610.png',
         placeholder: 1,
         words: 2, //min words in the textarea before reply
-        time: 3000,
-        speed: 400,
-        color_a: 'linear-gradient(to bottom, #ffff88 0%,#ffff88 100%)',
+        time: 3000, //time of notifications
+        speed: 400, //speed scroll 
+        color_a: 'linear-gradient(to bottom, #ffff88 0%,#ffff88 100%)',// red or error
         color_b: 'linear-gradient(to bottom, #ffaf4b 0%,#ff920a 100%)',
         color_c: 'linear-gradient(to bottom, #87e0fd 0%,#53cbf1 40%,#05abe0 100%)',
         color_d: 'linear-gradient(to bottom, rgba(255,26,0,0.5) 0%,rgba(255,26,0,0.5) 100%)',
@@ -24,18 +24,18 @@ var _ = {
         height: 250,
         img_close: 'http://illiweb.com/fa/prosilver/icon_post_delete.gif',
         color_border_edit: 'darkorange',
-        vote_location: '.profile-icons',
-        vote_position: 'append',
+        vote_location: '.profile-icons',// new location in the posts of vote buttons 
+        vote_position: 'append', // position of vote button in the new location
         editor_id: 1,
         autofocus: 1,
         autoexpand: 1,
         id: 'fm_editor',
         staff: [{ // if you no want any staff button, just set it this way: staff:[],
-            name: 'ok',
-            bg_button: 'https://i37.servimg.com/u/f37/19/54/26/00/accept11.png',
-            bgc_post: '#effeb9',
-            bg_post: 'https://i37.servimg.com/u/f37/19/54/26/00/accept10.png',
-            color: 'green'
+            name: 'ok', //class name of htlm replacement on post
+            bg_button: 'https://i37.servimg.com/u/f37/19/54/26/00/accept11.png', //background of button in sceditor toolbar
+            bgc_post: '#effeb9', //background color of htlm replacement
+            bg_post: 'https://i37.servimg.com/u/f37/19/54/26/00/accept10.png', // img on htlm bbcode replacement
+            color: 'green' //color of border and font in htlm replacement bbcode on post
         }, {
             name: 'info',
             bg_button: 'https://i37.servimg.com/u/f37/19/54/26/00/info_c10.png',
@@ -76,7 +76,7 @@ var _ = {
         da: 'deleted successfully'
     },
     lang: {
-        // you can change any sentences below
+        // you can change all sentences below
         success_reply: 'Your message has been entered successfully',
         flood: 'Flood control is active on this forum, please wait 10 second(s) before replying or posting',
         newpost: 'A new message has been posted',
