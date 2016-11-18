@@ -1,6 +1,6 @@
 console.log('//-----Written by Chalo ------- Open Source 2014-2016 -----//');
 console.log('//------------ http://www.opensourcephpbb3.com ------------//');
-console.log('//--------------------- Version: 1.5.8---------------------//');
+console.log('//--------------------- Version: 1.8---------------------//');
 console.log('//Reply, preview, quote, delete and more, without reload   //');
 var _ = {
     config: {
