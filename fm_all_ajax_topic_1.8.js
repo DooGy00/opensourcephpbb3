@@ -1,6 +1,6 @@
 console.log('//-----Written by Chalo ------- Open Source 2014-2016 -----//');
 console.log('//------------ http://www.opensourcephpbb3.com ------------//');
-console.log('//--------------------- Version: 1.8---------------------//');
+console.log('//--------------------- Version: 1.8-----------------------//');
 console.log('//Reply, preview, quote, delete and more, without reload   //');
 var _ = {
     config: {
@@ -102,7 +102,10 @@ var _ = {
         save: 'Save',
         wait: 'Please be patient, sending data to the server',
         doubleclick: 'Be patient, getting the data',
-        vote: 'like'
+        vote: 'like',
+        QuoteButton: '',
+        DeleteButton: '',
+        EditButton: ''
     },
     init: function () {
         _.loc = window.location.href;
@@ -124,142 +127,118 @@ var _ = {
         _.action = _.form.action;
         _.b_p = _.form.preview;
         _.b_p_v = _.b_p.value;
-        _.url = _.isTheme ? '/post?t=' + _.form.t.value + '&mode=reply' : _.isPost && document.location.href;
+        _.url = _.isTheme ? '/post?t=' + _.form.t.value + '&mode=reply' : _.isPost && _.loc;
         _.content = _.punbb ? '.entry-content' : _.phpbb3 ? '.content' : _.invision ? '.post-entry' : _.phpbb2 && '.postbody';
         _.a = _.e('a');
         _.config.vote == 1 && _.setVote();
-        _.oc_a = '_.g(this, \'quote\');return false';
-        _.oc_b = '_.g(this);return false';
-        _.oc_c = '_.g(this,\'edit\');return false';
-        _.oc_d = '_.p(this, \'preview\');return false';
-        _.oc_e = _.isMP ? '_.p(this, \'mp\');return false' : '_.p(this, \'reply\');return false';
-        _.oc_f = '_.p(this, \'edit\');return false';
+        _.oc_a = '_.get(this, \'quote\');return false';
+        _.oc_b = '_.get(this);return false';
+        _.oc_c = '_.get(this,\'edit\');return false';
+        _.oc_d = '_.send(this, \'preview\');return false';
+        _.oc_e = _.isMP ? '_.send(this, \'mp\');return false' : '_.send(this, \'reply\');return false';
+        _.oc_f = '_.send(this, \'edit\');return false';
         _.setButtons(_.a);
-        _.sE();
+        _.initSceditor();
     },
     setButtons: function (a) {
-        var i;
+        var d, i;
         for (i in a) {
-            _.config.quote == 1 && /(?!\&(mode)\=)(quote)/.test(a[i].href) && a[i].setAttribute('onclick', _.oc_a);
-            _.config.delete == 1 && /(?!\&(mode)\=)(delete)/.test(a[i].href) && a[i].setAttribute('onclick', _.oc_b);
-            _.config.edit == 1 && /(?!\&(mode)\=)(edit)/.test(a[i].href) && a[i].setAttribute('onclick', _.oc_c);
+            d = a[i];
+            /(?!\&(mode)\=)(quote)/.test(d.href) && (_.config.quote == 1 && (_.attr(d, {
+                onclick: _.oc_a,
+                className: 'quoteButton'
+            })), _.lang.QuoteButton != '' && (d.innerHTML = _.lang.QuoteButton));
+            /(?!\&(mode)\=)(delete)/.test(d.href) && (_.config.delete == 1 && _.attr(d, {
+                onclick: _.oc_b,
+                className: 'deleteButton'
+            }), _.lang.DeleteButton != '' && (d.innerHTML = _.lang.DeleteButton));
+            /(?!\&(mode)\=)(edit)/.test(d.href) && (_.config.edit == 1 && _.attr(d, {
+                onclick: _.oc_c,
+                className: 'editButton'
+            }), _.lang.EditButton != '' && (d.innerHTML = _.lang.EditButton));
         }
         _.config.preview == 1 && _.b_p.setAttribute('onclick', _.oc_d);
         _.config.reply == 1 && _.b_r.setAttribute('onclick', _.oc_e);
     },
-    prev_edit: function (j, e) {
-        _.style(j, {
-            border: '1px solid ' + _.config.color_border_edit
-        });
-        !_.e('.edit_subject').length && (_.create('input', {
-            className: 'inputbox medium edit_subject',
-            placeholder: _.lang.edit_subject_placeholder,
-            name: 'subject',
-            value: e,
-            style: {
-                display: 'table',
-                margin: '0 auto',
-                width: '99%',
-                marginBottom: '5px'
-            }
-        }, _.group, 'before'));
-    },
-    set_cancel: function () {
-        _.create('input', {
-            id: 'cancel_form',
-            type: 'submit',
-            name: 'cancel',
-            value: _.lang.delete_cancel,
-            onclick: '_.cancel(this);return false'
-        }, _.b_r, 'after');
-    },
-    cancel: function (c) {
-        var a = _.e('.notice_reply');
-        _.setButtons(_.e('a', _.post_target));
-        _.remove(c);
-        a.length && _.remove(a[0]);
-        _.sceditor.val('');
-    },
-    g: function (c, d) {
+    get: function (c, d) {
         _.url = 'undefined' != typeof c.href ? c.href : c;
         var a = _.url.match(/(?!\/post\?p=(\w+)\&mode=)(editpost|quote|vote|delete)|viewtopic/)[0],
-            b = _.pN(_.url),
+            b = _.postNumber(_.url),
             e, f, g, h, i, j, k, l, m, n, o, q, t, u, x;
         _.post_target = _.closest(c, '.post') != null ? _.closest(c, '.post') : _.e('.post--' + b)[0];
         j = _.post_target;
-        
-        !/viewtopic/.test(a) && c.setAttribute('onclick', '_.w();return false');
-        (/quote/.test(a) && _.gS() != 0) ? _.quickQuote(_.name(j)) : /delete/.test(a) ? _.setDelete_.url) : 
-        (_.XML('', _.url, function (e) {
-            x = e.responseXML;
-            f = a != 'vote' && x.forms.post.message.value;
-            e = a != 'vote' && x.forms.post.subject && (x.forms.post.subject.value);
-            switch (a) {
-            case 'editpost':
-                _.set_cancel();
-                _.prev_edit(j, e);
-                _.vSave = _.e('.vote', j).length && (_.e('.vote', j)[0]);
-                _.edit_subject = _.e('.edit_subject')[0];
-                _.edit_subject.val = _.edit_subject.value;
-                _.sceditor.val(f);
-                _.b_r.setAttribute('onclick', _.oc_f);
-                _.edit_number = b;
-                _.b_r.value = _.lang.save;
-                _.notice(_.lang.edit_mode + b, _.config.color_b, 'false');
-                _.scroll(_.form, _.config.speed);
-                break;
-            case 'quote':
-                _.set_cancel();
-                _.scroll(_.form, _.config.speed);
-                _.iT(f);
-                _.notice(_.lang.quote_mode + b, _.config.color_a, 'false');
-                break;
-            case 'viewtopic':
-                k = _.e('.post--' + b, x)[0];
-                _.attr(k, {
-                    style: {
-                        display: 'none',
-                    },
-                    className: k.className + ' new_ajax_post',
-                    innerHTML: _.parse(k.innerHTML)
-                });
-                switch (d) {
-                case 'reply':
-                    _.setButtons(_.e('a', k));
-                    _.setPost(k);
+        !/viewtopic/.test(a) && c.setAttribute('onclick', '_.wait();return false');
+        (/quote/.test(a) && _.selection() != 0) ? _.quickQuote(_.name(j)): /delete/.test(a) ? _.setDelete(_.url) :
+            (_.XML('', _.url, function (e) {
+                x = e.responseXML;
+                f = a != 'vote' && x.forms.post.message.value;
+                e = a != 'vote' && x.forms.post.subject && (x.forms.post.subject.value);
+                switch (a) {
+                case 'editpost':
+                    _.setCancel();
+                    _.notice(_.lang.edit_mode + b, _.config.color_b, 'false');
+                    _.preEdit(j, e);
+                    _.vSave = _.e('.vote', j).length && (_.e('.vote', j)[0]);
+                    _.edit_subject = _.e('.edit_subject')[0];
+                    _.edit_subject.val = _.edit_subject.value;
+                    _.sceditor.val(f);
+                    _.b_r.setAttribute('onclick', _.oc_f);
+                    _.edit_number = b;
+                    _.b_r.value = _.lang.save;
+                    _.scroll(_.form, _.config.speed);
                     break;
-                case 'edit':
-                    t = _.e(_.content, k);
-                    u = t[0].innerHTML;
-                    var vote = _.e('.vote', j);
-                    _.setButtons(_.e('a', j));
-                    _.e(_.content, j)[0].innerHTML = u;
-                    vote.length && (_.move(_.vSave, vote[0], 'replaceWith'));
-                    _.edit_subject.val != _.edit_subject.value && (_.tC(j).textContent = _.edit_subject.value, _.c_title(j, _.edit_subject.value));
-                    _.remove(_.edit_subject);
-                    _.b_r.setAttribute('onclick', _.oc_e);
-                    _.fadeIn(j, 500);
-                    _.scroll(j, _.config.speed);
+                case 'quote':
+                    _.setCancel();
+                    _.scroll(_.form, _.config.speed);
+                    _.insert(f);
+                    _.notice(_.lang.quote_mode + b, _.config.color_a, 'false');
+                    break;
+                case 'viewtopic':
+                    k = _.e('.post--' + b, x)[0];
+                    _.attr(k, {
+                        style: {
+                            display: 'none',
+                        },
+                        className: k.className + ' new_ajax_post',
+                        innerHTML: _.parse(k.innerHTML)
+                    });
+                    _.setButtons(_.e('a', k));
+                    _.setButtons(_.a, j);
+                    switch (d) {
+                    case 'reply':
+                        _.setPost(k);
+                        break;
+                    case 'edit':
+                        t = _.e(_.content, k);
+                        u = t[0].innerHTML;
+                        var vote = _.e('.vote', j);
+                        _.e(_.content, j)[0].innerHTML = u;
+                        vote.length && (_.move(_.vSave, vote[0], 'replaceWith'));
+                        _.edit_subject.val != _.edit_subject.value && (_.h2(j).textContent = _.edit_subject.value, _.cTitle(j, _.edit_subject.value));
+                        _.remove(_.edit_subject);
+                        _.b_r.setAttribute('onclick', _.oc_e);
+                        _.fadeIn(j, 500);
+                        _.scroll(j, _.config.speed);
+                        break;
+                    }
+                    _.sceditor.val('');
+                    _.e('#cancel_form') && _.remove(_.e('#cancel_form'));
+                    _.backColor('#000');
+                    _.editorOverlay(false);
+                    _.notice(_.lang.success_reply, _.config.color_e, 'true');
+                    break;
+                case 'vote':
+                    i = _.e('span', c.parentNode);
+                    o = parseInt(i[0].innerHTML) + parseInt(1);
+                    i.length && (i[0].innerHTML = o + ' ' + _.lang.vote + (o == 1 ? '' : 's'));
+                    _.e('img', c)[0].style.opacity = '.3';
+                    c.removeAttribute('onclick');
+                    c.removeAttribute('href');
                     break;
                 }
-                _.sceditor.val('');
-                _.e('#cancel_form') && _.remove(_.e('#cancel_form'));
-                _.backColor('#000');
-                _.oC(false);
-                _.notice(_.lang.success_reply, _.config.color_e, 'true');
-                break;
-            case 'vote':
-                i = _.e('span', c.parentNode);
-                o = parseInt(i[0].innerHTML) + parseInt(1);
-                i.length && (i[0].innerHTML = o + ' ' + _.lang.vote + (o == 1 ? '' : 's'));
-                _.e('img', c)[0].style.opacity = '.3';
-                c.removeAttribute('onclick');
-                c.removeAttribute('href');
-                break;
-            }
-        }))
+            }))
     },
-    p: function (f, m) {
+    send: function (f, m) {
         var a, b, c, d, g, h, i, j, k, l, n, o, p, q, r, s, t, u, v, w, x, y, w, z, da;
         _.E = /edit/.test(m);
         _.R = /reply/.test(m);
@@ -277,7 +256,7 @@ var _ = {
         _.uritexto = (_.M || _.R) ? _.serialize(_.form) + '&post=1&prevent_post=1' : _.P ? _.serialize(_.form) + '&preview=Preview' : _.D ? '&confirm=1' : '&subject=' + x + '&message=' + n + '&mode=editpost&p=' + _.edit_number + '&notify=on&&post=1&prevent_post=1';
         if (y.length > 0 && y.match(_.regex) != null && y.match(_.regex).length >= _.config.words || _.D) {
             if ((_.isPost || _.isMP) && (_.form.subject && _.form.subject.value.length >= 10) || _.isNewReply || _.P || _.isEditPost || _.isTheme) {
-                !_.D && (_.prev_post(f));
+                !_.D && (_.prePost(f));
                 _.XML(_.uritexto, _.url_post, function (e) {
                     h = e.responseXML;
                     j = _.e(_.phpbb2 ? '#page-body' : '#main', h);
@@ -324,7 +303,7 @@ var _ = {
                             _.response(_.lang.error_reply, '', 'true', _.b_r, _.b_r_v, '#000', 1)
                         } else {
                             if (_.isTheme) {
-                                'undefined' != typeof c && _.g(c, m);
+                                'undefined' != typeof c && _.get(c, m);
                                 _.response(_.lang.wait, _.config.color_c, 'true', _.b_r, _.b_r_v, '#dededf', 0);
                             } else {
                                 _.overlay(_.lang.loading);
@@ -349,7 +328,6 @@ var _ = {
                         d = _.post_target;
                         r = _.e('#confirm_wrap');
                         q = _.e('#overlay');
-
                         if (da > 0) {
                             d && (_.phpbb2 ? (_.fadeOut(d.nextElementSibling, 500), _.fadeOut(d, 500)) : _.fadeOut(d, 500));
                             r && _.remove(r);
@@ -370,9 +348,8 @@ var _ = {
             _.R ? _.rF(_.b_r, _.b_r_v) : _.rF(_.b_p, _.b_p_v);
         }
     },
-    
-    prev_post: function (f) {
-        f.value = _.P ? _.lang.loading : _.lang.reply_btn_send, (_.isTheme || _.isPost && _.P) && (_.oC(_.lang.loading), _.backColor('#dededf')), _.P ? _.attr(_.b_p, {
+    prePost: function (f) {
+        f.value = _.P ? _.lang.loading : _.lang.reply_btn_send, (_.isTheme || _.isPost && _.P) && (_.editorOverlay(_.lang.loading), _.backColor('#dededf')), _.P ? _.attr(_.b_p, {
             onclick: '',
             style: {
                 color: '#fff',
@@ -385,6 +362,58 @@ var _ = {
                 background: _.config.color_d
             }
         });
+    },
+    preEdit: function (j, e) {
+        _.style(j, {
+            border: '1px solid ' + _.config.color_border_edit
+        });
+        !_.e('.edit_subject').length && (_.create('input', {
+            className: 'inputbox medium edit_subject',
+            placeholder: _.lang.edit_subject_placeholder,
+            name: 'subject',
+            value: e,
+            style: {
+                display: 'table',
+                margin: '0 auto',
+                width: '99%',
+                marginBottom: '5px'
+            }
+        }, _.group, 'before'));
+    },
+    cancel: function (c) {
+        var a = _.e('.notice_reply'),
+            b = _.e('.edit_subject');
+        _.setButtons(_.e('a', _.post_target));
+        _.remove(c);
+        a.length && _.remove(a[0]);
+        b.length && _.remove(b[0]);
+        _.b_r.value == _.lang.save && (_.rF(_.b_r, _.b_r_v));
+        _.sceditor.val('');
+    },
+    close: function (c) {
+        var i, a = _.e(/delete/.test(c) ? '#confirm_wrap' : '#preview_content'),
+            b = _.e('#overlay');
+        _.fadeOut(a, 500);
+        _.fadeOut(b, 500);
+        setTimeout(function () {
+            _.remove(a);
+            _.remove(b);
+        }, 600);
+        _.rC.style.display = 'block' && (_.rC.style.display = 'none');
+        /preview/.test(c) && _.backColor('#000')
+    },
+    setCancel: function () {
+        var a = document.createTextNode('\u00A0'),
+            b = _.e('#cancel_form');
+        !b && (_.create('input', {
+                id: 'cancel_form',
+                className: 'button',
+                type: 'submit',
+                name: 'cancel',
+                value: _.lang.delete_cancel,
+                onclick: '_.cancel(this);return false'
+            }, _.b_p, 'before'),
+            _.move(a, _.b_p, 'before'));
     },
     setVote: function () {
         var i, a, b, c, d, e, f, g, j, k, m, o, p, fr, l = _.config.vote_img,
@@ -443,7 +472,7 @@ var _ = {
                 _.attr(o, {
                     className: 'like',
                     href: b.href,
-                    onclick: '_.g(this,\'vote\');return false',
+                    onclick: '_.get(this,\'vote\');return false',
                     innerHTML: '',
                     style: {
                         float: 'right',
@@ -476,43 +505,49 @@ var _ = {
     setPreview: function (o) {
         var a = document.createDocumentFragment();
         _.create('div', {
-            id: 'preview_content',
-            style: {
-                background: '#fff',
-                left: '15%',
-                position: 'fixed',
-                top: '10%',
-                width: '70%',
-                height: '65%',
-                overflow: 'auto',
-                zIndex: '999',
-                boxSshadow: '10px 10px 40px black',
-                borderRradius: '3px',
-                fontSize: '1.2em',
-                padding: '10px',
-                fontFamily: 'Arial',
-                textShadow: '0 1px 1px white',
-                color: '#666',
-            }
-        }, a, 'append'), _.create('div', {
-            className: 'preview_inner',
-            innerHTML: _.parse(o.innerHTML),
-            style: {
-                textAlign: 'justify',
-                display: 'inline-block',
-                width: '100%'
-            }
-        }, a.childNodes[0], 'append'), _.create('a', {
-            id: 'close',
-            onclick: '_.close(\'preview\')',
-            style: {
-                float: 'right',
-                cursor: 'pointer'
-            },
-        }, a.childNodes[0], 'prepend'), _.create('img', {
-            src: _.config.img_close
-        }, a.firstChild.firstChild, 'append');
-        _.overlay(_.b_p_v);
+                id: 'preview_content',
+                style: {
+                    background: '#fff',
+                    left: '15%',
+                    position: 'fixed',
+                    top: '10%',
+                    width: '70%',
+                    height: '65%',
+                    overflow: 'auto',
+                    zIndex: '999',
+                    boxSshadow: '10px 10px 40px black',
+                    borderRradius: '3px',
+                    fontSize: '1.2em',
+                    padding: '10px',
+                    fontFamily: 'Arial',
+                    textShadow: '0 1px 1px white',
+                    color: '#666',
+                }
+            }, a, 'append'), _.create('div', {
+                className: 'preview_inner',
+                innerHTML: _.parse(o.innerHTML),
+                style: {
+                    textAlign: 'justify',
+                    display: 'inline-block',
+                    width: '100%'
+                }
+            }, a.childNodes[0], 'append'), _.create('a', {
+                id: 'close',
+                onclick: '_.close(\'preview\')',
+                style: {
+                    float: 'right',
+                    cursor: 'pointer'
+                },
+            }, a.childNodes[0], 'prepend'), _.create('img', {
+                src: _.config.img_close
+            }, a.firstChild.firstChild, 'append'),
+            _.create('h2', {
+                innerHTML: _.b_p_v,
+                style: {
+                    textAlign: 'center'
+                }
+            }, a.childNodes[0], 'prepend');
+        _.overlay();
         _.body.appendChild(a);
     },
     setDelete: function (f) {
@@ -533,7 +568,7 @@ var _ = {
         }, a, 'append');
         _.create('div', {
             id: 'confirm_content',
-            innerHTML: _.lang.delete_main + _.pN(f),
+            innerHTML: _.lang.delete_main + _.postNumber(f),
             style: {
                 color: '#fff',
                 marginBottom: '7px',
@@ -548,7 +583,7 @@ var _ = {
             id: 'yes',
             className: 'yes',
             href: f,
-            onclick: '_.p(this, \'delete\');return false',
+            onclick: '_.send(this, \'delete\');return false',
             innerHTML: _.lang.delete_yes,
             style: {
                 color: '#fff',
@@ -622,7 +657,6 @@ var _ = {
         }, 600));
         _.fadeIn(a, 500);
     },
-    
     XML: function (a, b, f) {
         var c;
         c = window.XMLHttpRequest ? new XMLHttpRequest : window.ActiveXObject && (new ActiveXObject('Microsoft.XMLHTTP'));
@@ -649,7 +683,7 @@ var _ = {
     notice: function (c, f, h) {
         var b, g;
         g = _.e('.notice_reply');
-        b = _.group;
+        b = _.group, 'form';
         !g.length ? (_.create('div', {
             innerHTML: 'undefined' == typeof c ? _.lang.notice_default : c,
             className: 'notice_reply',
@@ -718,18 +752,6 @@ var _ = {
         }
         return null
     },
-    close: function (c) {
-        var i, a = _.e(/delete/.test(c) ? '#confirm_wrap' : '#preview_content'),
-            b = _.e('#overlay');
-        _.fadeOut(a, 500);
-        _.fadeOut(b, 500);
-        setTimeout(function () {
-            _.remove(a);
-            _.remove(b);
-        }, 600);
-        _.rC.style.display = 'block' && (_.rC.style.display = 'none');
-        /preview/.test(c) && _.dC('#000')
-    },
     scroll: function (o, e, t, s) {
         e = e || 500, s = s || window;
         var a = o.clientHeight < 150 ? o.clientHeight * 2 : o.clientHeight < 399 ? o.clientHeight : o.clientHeight > 400 && '',
@@ -746,7 +768,6 @@ var _ = {
             };
         a()
     },
-    
     parseBBcode: function () {
         var i, b, d, e, f, g, a = _.e('.post'),
             c = a.length;
@@ -785,7 +806,7 @@ var _ = {
         }
         return c
     },
-    sE: function () {
+    initSceditor: function () {
         if (!$.sceditor || !toolbar) return;
         _.opts = $.sceditor.defaultOptions;
         _.config.editor_id == 1 && (_.opts.id = _.config.id);
@@ -824,7 +845,7 @@ var _ = {
         _.fa = _.e('#fa_toolbar');
         _.text_a = _.e('textarea', _.form)[1];
         _.config.placeholder == 1 && (_.text_a.placeholder = _.lang.placeholder);
-        _.config.beroreunload == 1 && _.bU();
+        _.config.beroreunload == 1 && _.beforeunload();
         _.isTheme && (_.sceditor.height(_.config.height), _.parseBBcode());
         _.bM.length && (_.bM[0].onclick = function () {
             if (!_.fa) return;
@@ -843,50 +864,22 @@ var _ = {
     text_int: function (a, c) {
         return a.textContent = c
     },
-    iT: function (c) {
+    insert: function (c) {
         insertIntoEditor(c + '\n')
     },
-    eC: function (t) {
-        return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    cTitle: function (j, e) {
+        (!location.href.match(/p(\d+)/) && _.checkFirst(j)) && (_.subject.textContent = e);
     },
-    pS: function (o, e, s, r) {
-        return o + (e - o) * _.eC(s / r)
-    },
-    gT: function (o, e) {
-        return 'HTML' === o.nodeName ? -e : o.getBoundingClientRect().top + e
-    },
-    getViewtopic: function (h) {
-        var i, g = _.e('a', h);
-        for (i in g) {
-            /\/viewtopic/g.test(g[i].href) && (_.view_url = g[i].href)
-        }
-    },
-    tC: function (c) {
-        return _.punbb || _.phpbb3 ? _.e('a', _.e('h2', c)[0])[0] : _.invision ? _.e('a', _.e('h3', c)[0])[0] : _.phpbb2 && _.e('.postdetails', c)[1].childNodes[1]
-    },
-    c_title: function (j, e) {
-        (!location.href.match(/p(\d+)/) && _.check_first(j)) && (_.subject.textContent = e);
-    },
-    check_first: function (b) {
+    checkFirst: function (b) {
         var n = _.post_data[0].class[0];
         return n == b.className.match(/(\d+)/)[0]
     },
     regexEscaped: function (str) {
         return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     },
-    gS: function () {
-        var e = '';
-        return window.getSelection ? e = window.getSelection().toString() : document.selection && 'Control' != document.selection.type && (e = document.selection.createRange().text), e
-    },
     quickQuote: function (p) {
-        _.scroll(_.form, _.config.speed), _.iT('[quote="' + p + '"]' + _.gS() + '[/quote]')
-    },
-    rF: function (c, d) {
-        _.attr(c, {
-            value: d,
-            onclick: _.R ? _.oc_e : _.oc_d
-        });
-        c.removeAttribute('style');
+        _.setCancel();
+        _.scroll(_.form, _.config.speed), _.insert('[quote="' + p + '"]' + _.selection() + '[/quote]')
     },
     reg: function (a, b) {
         var f;
@@ -895,7 +888,7 @@ var _ = {
         b = _.regexEscaped(b);
         return new RegExp(a + '(.*?)' + b, f);
     },
-    pN: function (c) {
+    postNumber: function (c) {
         return c.match(/viewtopic/) ? c.match(/(\w+)$/g)[0] : c.match(/[\p\=](\w+)(?=\&)/)[1]
     },
     move: function (e, r, a) {
@@ -917,7 +910,7 @@ var _ = {
             break;
         }
     },
-    bU: function () {
+    beforeunload: function () {
         var a = _.sceditor;
         a && (window.onbeforeunload = function () {
             if (a.val().length) {
@@ -925,7 +918,7 @@ var _ = {
             }
         });
     },
-    oC: function (c) {
+    editorOverlay: function (c) {
         _.attr(_.rC, {
             innerHTML: c != false ? c : '',
             style: {
@@ -937,7 +930,7 @@ var _ = {
             }
         })
     },
-    w: function () {
+    wait: function () {
         _.overlay(_.lang.doubleclick);
         setTimeout(function () {
             _.overlay(false);
@@ -950,7 +943,7 @@ var _ = {
         return c.textContent;
     },
     response: function (a, b, c, d, e, f, g) {
-        _.notice(a, b, c), _.rF(d, e), _.dC(f), g == 1 && _.oC(false)
+        _.notice(a, b, c), _.rF(d, e), _.backColor(f), g == 1 && _.editorOverlay(false)
     },
     backColor: function (c) {
         _.sceditor.css('body { color: ' + c + '; }');
@@ -958,10 +951,10 @@ var _ = {
     },
     create: function (e, r, n, a) {
         var t = 1 == e.nodeType ? e : document.createElement(e);
-        _.attr(t, r), _.move(t, n, a)
+        _.attr(t, r), _.move(t, n, a);
     },
     remove: function (a) {
-      a.parentNode.removeChild(a);
+        a.parentNode.removeChild(a);
     },
     attr: function (s, e) {
         for (var t in e) 'style' != t && (s[t] = e[t], /^on/.test(t) && s.setAttribute(t, e[t]));
@@ -971,6 +964,35 @@ var _ = {
         if ('string' == typeof o && (o = _.e(o)), o.style)
             for (var s in e) o.style[s] = e[s];
         return this
+    },
+    selection: function () {
+        var e = '';
+        return window.getSelection ? e = window.getSelection().toString() : document.selection && 'Control' != document.selection.type && (e = document.selection.createRange().text), e
+    },
+    rF: function (c, d) {
+        _.attr(c, {
+            value: d,
+            onclick: _.R ? _.oc_e : _.oc_d
+        });
+        c.removeAttribute('style');
+    },
+    eC: function (t) {
+        return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    },
+    pS: function (o, e, s, r) {
+        return o + (e - o) * _.eC(s / r)
+    },
+    gT: function (o, e) {
+        return 'HTML' === o.nodeName ? -e : o.getBoundingClientRect().top + e
+    },
+    h2: function (c) {
+        return _.punbb || _.phpbb3 ? _.e('a', _.e('h2', c)[0])[0] : _.invision ? _.e('a', _.e('h3', c)[0])[0] : _.phpbb2 && _.e('.postdetails', c)[1].childNodes[1]
+    },
+    getViewtopic: function (h) {
+        var i, g = _.e('a', h);
+        for (i in g) {
+            /\/viewtopic/g.test(g[i].href) && (_.view_url = g[i].href)
+        }
     },
     e: function (o, e) {
         e = 'undefined' != typeof e ? e : document;
@@ -993,5 +1015,5 @@ var _ = {
     },
 };
 $(function () {
-    (document.getElementById('logout') && /\/t\d+/g.test(window.location.pathname) || /\/post/.test(window.location.pathname) || /\/privmsg\?mode=(post|reply|edit)/.test(window.location.href)) && (_.init());
+    (document.getElementById('logout') && /\/t\d+/g.test(window.location.pathname) || /\/post/.test(window.location.pathname) || /\/privmsg\?mode=(post|reply|edit)/.test(window.location.href)) && _.init();
 });
